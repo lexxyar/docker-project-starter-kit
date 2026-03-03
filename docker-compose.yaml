@@ -1,0 +1,147 @@
+networks:
+  dev:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
+  mailpit_data:
+    driver: local
+  s3_data:
+    driver: local
+    
+services:
+  nginx:
+    image: nginx:1.27.3
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - 80:80
+    # - 443:443
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/logs/:/var/log/nginx/
+      - ./docker/ssl:/etc/nginx/ssl
+      - ./laravel:/var/www
+    networks:
+      - dev
+
+  php:
+    build:
+      context: .
+      dockerfile: ./docker/php.dockerfile
+    container_name: php
+    restart: unless-stopped
+    user: ${PHP_UID}:${PHP_GID}
+    expose:
+      - 9000
+    volumes:
+      - ./laravel:/var/www
+    depends_on:
+      - db
+      - s3
+      - mailpit
+    networks:
+      - dev
+
+  db:
+    image: mariadb:12.1.2
+    container_name: db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    volumes:
+      # - ./docker/mysql:/var/lib/mysql
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${API_DB_DATABASE}
+      MYSQL_USER: ${API_DB_USERNAME}
+      MYSQL_PASSWORD: ${API_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SERVICE_TAG: dev
+      SERVICE_NAME: mysql
+    networks:
+      - dev
+
+  supervisor:
+    build:
+      context: .
+      dockerfile: ./docker/supervisor.dockerfile
+    container_name: supervisor
+    user: ${PHP_UID}:${PHP_GID}
+    volumes:
+      - ./laravel:/var/www
+    depends_on:
+      - php
+      - db
+    restart: always
+    networks:
+      - dev
+  
+  mailpit:
+    image: axllent/mailpit:v1.22
+    container_name: mailpit
+    environment:
+      MP_DATA_FILE: /data/mailpit.db
+    volumes:
+      # - ./docker/mailpit:/data
+      - mailpit_data:/data
+    ports:
+      - "8025:8025"
+    # - "1025:1025"
+    networks:
+      - dev
+
+  # phpmyadmin:
+  #   # image: phpmyadmin
+  #   image: phpmyadmin:5.2.3
+  #   container_name: phpmyadmin
+  #   restart: always
+  #   depends_on:
+  #     - db
+  #   ports:
+  #     - "8090:80"
+  #   links:
+  #     - db:db
+  #   environment:
+  #     - PMA_ARBITRARY=1
+  #     - PMA_HOST=db
+  #   networks:
+  #     - dev
+
+  s3:
+    image: minio/minio:RELEASE.2025-02-03T21-03-04Z
+    container_name: s3_minio
+    command: server --address ":9002" --console-address ":9001" /data/
+    ports:
+      - 9002:9002
+      - 9001:9001
+    environment:
+      # MINIO_SERVER_URL: https://subdomain.example.net/
+      MINIO_ROOT_USER: ${MINO_S3_USERNAME}
+      MINIO_ROOT_PASSWORD: ${MINO_S3_PASSWORD}
+    volumes:
+      # - ./docker/s3-minio-storage:/data
+      - s3_data:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9002/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - dev
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/frontend.dockerfile
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Explicitly keep node_modules inside the container
+    command: ["npm", "run", "dev", "--", "--host"]
+    networks:
+      - dev
