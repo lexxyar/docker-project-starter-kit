@@ -1,6 +1,6 @@
 {
     "schemaVersion": 1,
-    "label": "hello",
-    "message": "sweet world",
+    "label": "License",
+    "message": "MIT",
     "color": "orange"
 }
