@@ -1,4 +1,3 @@
-
 import React from 'react'
 import {
     Sidebar,
@@ -12,9 +11,7 @@ import {
     SidebarMenuItem,
     SidebarRail,
 } from "@/components/ui/sidebar"
-import WorkspaceSelector from "@/app/(authorized)/workspaces/_components/WorkspaceSelector"
-import {useQuery} from "@tanstack/react-query"
-import {useAuth} from "@/hooks/use-auth"
+import WorkspaceSelector from "@/app/(authorized)/_components/WorkspaceSelector"
 
 // This is sample data.
 const data = {
@@ -39,7 +36,7 @@ const data = {
     ],
 }
 
-const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+const AppSidebar = ({...props}: React.ComponentProps<typeof Sidebar>) => {
 
     return (
         <Sidebar {...props}>
@@ -51,7 +48,7 @@ const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
                 {/*<SearchForm />*/}
             </SidebarHeader>
             <SidebarContent>
-                <WorkspaceSelector />
+                <WorkspaceSelector/>
 
 
                 {/* We create a SidebarGroup for each parent. */}
@@ -72,7 +69,7 @@ const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
                     </SidebarGroup>
                 ))}
             </SidebarContent>
-            <SidebarRail />
+            <SidebarRail/>
         </Sidebar>
     )
 }

@@ -4,21 +4,22 @@ import React from 'react'
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup, DropdownMenuItem,
-    DropdownMenuLabel, DropdownMenuSeparator,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import {Avatar, AvatarFallback} from "@/components/ui/avatar"
-import {useAuth} from "@/hooks/use-auth"
 import {useQuery} from "@tanstack/react-query"
 import {getInitials} from "@/lib/utils"
 import {useRouter} from "next/navigation"
+import {currentUser, logout} from "@/actions/auth"
 
 const ProfileMenu = () => {
-    const {fetchUser, logout} = useAuth()
     const {data: user} = useQuery({
         queryKey: ['currentUser'],
-        queryFn: fetchUser,
+        queryFn: currentUser,
         staleTime: 1000 * 60 * 5, // 5 minutes
     })
 
@@ -45,7 +46,7 @@ const ProfileMenu = () => {
                         </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator/>
-                    <DropdownMenuItem onClick={()=>router.push('/profile')}>
+                    <DropdownMenuItem onClick={() => router.push('/profile')}>
                         Profile
                     </DropdownMenuItem>
                     <DropdownMenuItem>Billing</DropdownMenuItem>

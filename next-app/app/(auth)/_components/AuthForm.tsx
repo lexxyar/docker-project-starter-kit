@@ -8,10 +8,10 @@ import {Field, FieldError, FieldGroup, FieldLabel} from "@/components/ui/field"
 import {Input} from "@/components/ui/input"
 import {Button} from "@/components/ui/button"
 import {useMutation} from "@tanstack/react-query"
-import ValidationError from "@/classes/ValidationError"
 import {toast} from "sonner"
-import {useAuth} from "@/hooks/use-auth"
 import {usePathname, useRouter} from "next/navigation"
+import {parseError} from "@/lib/utils"
+import {login, register} from "@/actions/auth"
 
 
 type LoginInput = {
@@ -38,28 +38,17 @@ function AuthForm() {
         },
     })
 
-    const {login, register} = useAuth()
     const pathname = usePathname()
     const router = useRouter()
 
-    const submitMutation = useMutation<unknown, Error, LoginInput>({
+    const submitMutation = useMutation<unknown, Error, z.infer<typeof authFormSchema>>({
         mutationFn: pathname === '/register' ? register : login, // Передаем функцию, которую нужно выполнить
-        onSuccess: (data) => {
-            router.push('/workspaces')
+        onSuccess: () => {
+            router.replace('/workspaces')
         },
         onError: (error) => {
-            if (error instanceof ValidationError) {
-                console.log(error.errors)
-                Object.keys(error.errors).forEach((key) => {
-                    error.errors[key].map((errorText: string) => {
-                        // @ts-ignore
-                        form.setError(key, {message: errorText})
-                    })
-                })
-            }
-            // Пример: установка глобальной ошибки формы
-            form.setError('root.serverError', {message: error.message})
-            toast.error(error.message)
+            const {message} = parseError(error, form)
+            toast.error(message)
         },
     })
     const onSubmit = (data: z.infer<typeof authFormSchema>) => {

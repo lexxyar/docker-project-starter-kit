@@ -5,17 +5,19 @@ import {Button} from "@/components/ui/button"
 import YandexIcon from "@/components/icons/YandexIcon"
 import GoogleIcon from "@/components/icons/GoogleIcon"
 import {cn} from "@/lib/utils"
-import {useAuth} from "@/hooks/use-auth"
+import {socialRedirect} from "@/actions/auth"
 
 function SocialLogin(props: { className?: string }) {
-    const {socialRedirect} = useAuth()
+    const handleRedirect = async(provider:string) => {
+        window.location.href = await socialRedirect(provider as any)
+    }
     return (
         <div className={cn("grid gap-2", props.className)}>
-            <Button onClick={() => socialRedirect('yandex')}>
+            <Button onClick={() => handleRedirect('yandex')}>
                 <YandexIcon/>
                 Yandex ID
             </Button>
-            <Button onClick={() => socialRedirect('google')}>
+            <Button onClick={() => handleRedirect('google')}>
                 <GoogleIcon/>
                 Google
             </Button>

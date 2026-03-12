@@ -5,20 +5,20 @@ import FormCard from "@/app/(auth)/_components/FormCard"
 import FormCardHeader from "@/app/(auth)/_components/FormCardHeader"
 import {CardContent} from "@/components/ui/card"
 import {Spinner} from "@/components/ui/spinner"
-import apiClient from "@/lib/api-client"
 import {useRouter, useSearchParams} from "next/navigation"
+import {get} from "@/lib/http-client"
+import config from "@/lib/config"
 
 const Page = () => {
     const [status, setStatus] = useState<boolean | null>(null)
-    const {get: httpGet, baseUrl} = apiClient()
     const searchParams = useSearchParams()
     const router = useRouter()
 
     const url = atob(searchParams.get('token') ?? '')
-        .replace(baseUrl(), '')
+        .replace(config().baseUrl, '')
 
     useEffect(() => {
-        httpGet(url)
+        get(url)
             .then((res: any) => {
                 setStatus(true)
                 setTimeout(() => router.replace('/workspaces'), 2000)
@@ -26,7 +26,7 @@ const Page = () => {
             .catch(() => {
                 setStatus(false)
             })
-    })
+    }, [])
 
     return (
         <FormCard>

@@ -9,13 +9,13 @@ import {zodResolver} from "@hookform/resolvers/zod"
 import {Field, FieldError, FieldGroup, FieldLabel} from "@/components/ui/field"
 import {Input} from "@/components/ui/input"
 import {useMutation} from "@tanstack/react-query"
-import ValidationError from "@/classes/ValidationError"
 import {toast} from "sonner"
-import {useAuth} from "@/hooks/use-auth"
 import {CircleCheckBigIcon} from "lucide-react"
 import FormCardHeader from "@/app/(auth)/_components/FormCardHeader"
 import FormCard from "@/app/(auth)/_components/FormCard"
 import SeparatorWithText from "@/app/(auth)/_components/SeparatorWithText"
+import {parseError} from "@/lib/utils"
+import {emailResetPasswordLink} from "@/actions/auth"
 
 const forgotPasswordFormSchema = z.object({
     email: z
@@ -30,27 +30,16 @@ const Page = () => {
             email: "",
         },
     })
-    const {emailResetPasswordLink} = useAuth()
     const [status, setStatus] = useState(false)
 
     const submitMutation = useMutation<unknown, Error, string>({
         mutationFn: emailResetPasswordLink,
         onSuccess: (data) => {
             setStatus(true)
-            // router.push('/workspaces')
         },
         onError: (error) => {
-            if (error instanceof ValidationError) {
-                console.log(error.errors)
-                Object.keys(error.errors).forEach((key) => {
-                    error.errors[key].map((errorText: string) => {
-                        // @ts-ignore
-                        form.setError(key, {message: errorText})
-                    })
-                })
-            }
-            form.setError('root.serverError', {message: error.message})
-            toast.error(error.message)
+            const {message} = parseError(error, form)
+            toast.error(message)
         },
     })
 

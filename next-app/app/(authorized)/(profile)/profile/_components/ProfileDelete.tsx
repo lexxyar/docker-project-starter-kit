@@ -1,7 +1,7 @@
 import React from 'react'
 import {Card, CardContent} from "@/components/ui/card"
 import {Button} from "@/components/ui/button"
-import {cn} from "@/lib/utils"
+import {cn, parseError} from "@/lib/utils"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -13,16 +13,15 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import {useProfile} from "@/hooks/use-profile"
 import z from 'zod'
 import {Field, FieldError, FieldGroup} from "@/components/ui/field"
 import {Controller, useForm} from "react-hook-form"
 import {Input} from "@/components/ui/input"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useMutation} from "@tanstack/react-query"
-import ValidationError from "@/classes/ValidationError"
 import {toast} from "sonner"
 import {useRouter} from "next/navigation"
+import {deleteProfile} from "@/actions/profile"
 
 const deleteFormSchema = z.object({
     password: z.string().min(8, 'Password must be at least 8 characters'),
@@ -35,7 +34,6 @@ const ProfileDelete = ({className}: { className?: string }) => {
             password: "",
         },
     })
-    const {deleteProfile} = useProfile()
     const router = useRouter()
 
     const submitMutation = useMutation<unknown, Error, string>({
@@ -46,17 +44,8 @@ const ProfileDelete = ({className}: { className?: string }) => {
         },
         onError: (error) => {
             form.reset()
-            if (error instanceof ValidationError) {
-                console.log(error.errors)
-                Object.keys(error.errors).forEach((key) => {
-                    error.errors[key].map((errorText: string) => {
-                        // @ts-ignore
-                        form.setError(key, {message: errorText})
-                    })
-                })
-            }
-            form.setError('root.serverError', {message: error.message})
-            toast.error(error.message)
+            const {message} = parseError(error, form)
+            toast.error(message)
         },
     })
 

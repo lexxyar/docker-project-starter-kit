@@ -9,15 +9,13 @@ import {zodResolver} from "@hookform/resolvers/zod"
 import {Field, FieldError, FieldGroup, FieldLabel} from "@/components/ui/field"
 import {Input} from "@/components/ui/input"
 import {Button} from "@/components/ui/button"
-import {useMutation} from "@tanstack/react-query"
-import ValidationError from "@/classes/ValidationError"
 import {toast} from "sonner"
-import {useAuth} from "@/hooks/use-auth"
-import {Separator} from "@/components/ui/separator"
 import Link from "next/link"
 import FormCardHeader from "@/app/(auth)/_components/FormCardHeader"
 import FormCard from "@/app/(auth)/_components/FormCard"
 import SeparatorWithText from "@/app/(auth)/_components/SeparatorWithText"
+import {resetPassword} from "@/actions/auth"
+import {parseError} from "@/lib/utils"
 
 const passwordResetFormSchema = z.object({
     token: z.string().nonempty('Token is required'),
@@ -32,7 +30,6 @@ const passwordResetFormSchema = z.object({
 
 
 const Page = () => {
-    const {resetPassword} = useAuth()
     const searchParams = useSearchParams()
     const token = searchParams.get("token")
     const query = JSON.parse(atob(token ?? '{}'))
@@ -48,30 +45,17 @@ const Page = () => {
         },
     })
 
-    const submitMutation = useMutation<unknown, Error, z.infer<typeof passwordResetFormSchema>>({
-        mutationFn: resetPassword, // Передаем функцию, которую нужно выполнить
-        onSuccess: (data) => {
-            router.replace('/login')
-        },
-        onError: (error) => {
-            if (error instanceof ValidationError) {
-                console.log(error.errors)
-                Object.keys(error.errors).forEach((key) => {
-                    error.errors[key].map((errorText: string) => {
-                        // @ts-ignore
-                        form.setError(key, {message: errorText})
-                    })
-                })
-            }
-            // Пример: установка глобальной ошибки формы
-            form.setError('root.serverError', {message: error.message})
-            toast.error(error.message)
-        },
-    })
-
-    const onSubmit = (data: z.infer<typeof passwordResetFormSchema>) => {
-        submitMutation.mutate(data)
+    const onSubmit = async (data: z.infer<typeof passwordResetFormSchema>) => {
+        try {
+            await resetPassword(data)
+            router.replace("/login")
+        } catch (error: any) {
+            console.log('error', error)
+            const {message} = parseError(error, form)
+            toast.error(message)
+        }
     }
+
     return (
         <FormCard>
             <FormCardHeader title={"New password"}/>
@@ -129,7 +113,7 @@ const Page = () => {
                     </FieldGroup>
                 </form>
 
-                <SeparatorWithText text={"or"} />
+                <SeparatorWithText text={"or"}/>
 
                 <div className={"flex items-center gap-4 w-full justify-between"}>
                     <Link href="/login">

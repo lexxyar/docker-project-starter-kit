@@ -7,9 +7,9 @@ import {Field, FieldError, FieldGroup, FieldLabel} from "@/components/ui/field"
 import {Input} from "@/components/ui/input"
 import {Button} from "@/components/ui/button"
 import {useMutation} from "@tanstack/react-query"
-import ValidationError from "@/classes/ValidationError"
 import {toast} from "sonner"
-import {useProfile} from "@/hooks/use-profile"
+import {parseError} from "@/lib/utils"
+import {changePassword} from "@/actions/profile"
 
 const passwordChangeFormSchema = z.object({
     current_password: z.string().min(8, 'Password must be at least 8 characters'),
@@ -24,33 +24,22 @@ const passwordChangeFormSchema = z.object({
 const Page = () => {
     const form = useForm<z.infer<typeof passwordChangeFormSchema>>({
         resolver: zodResolver(passwordChangeFormSchema),
-        defaultValues:{
+        defaultValues: {
             current_password: "",
             password: "",
             password_confirmation: "",
         }
     })
-    const {changePassword} = useProfile()
 
     const submitMutation = useMutation<unknown, Error, z.infer<typeof passwordChangeFormSchema>>({
         mutationFn: changePassword, // Передаем функцию, которую нужно выполнить
-        onSuccess: (data) => {
-            // router.push('/workspaces')
+        onSuccess: () => {
             form.reset()
             toast.success('Password changed successfully.')
         },
         onError: (error) => {
-            if (error instanceof ValidationError) {
-                console.log(error.errors)
-                Object.keys(error.errors).forEach((key) => {
-                    error.errors[key].map((errorText: string) => {
-                        // @ts-ignore
-                        form.setError(key, {message: errorText})
-                    })
-                })
-            }
-            form.setError('root.serverError', {message: error.message})
-            toast.error(error.message)
+            const {message} = parseError(error, form)
+            toast.error(message)
         },
     })
 

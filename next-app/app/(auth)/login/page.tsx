@@ -7,14 +7,13 @@ import SocialLogin from "@/app/(auth)/_components/SocialLogin"
 import {Button} from "@/components/ui/button"
 import Link from 'next/link'
 import {useRouter, useSearchParams} from "next/navigation"
-import {useAuth} from "@/hooks/use-auth"
 import FormCard from "@/app/(auth)/_components/FormCard"
 import FormCardHeader from "@/app/(auth)/_components/FormCardHeader"
 import SeparatorWithText from "@/app/(auth)/_components/SeparatorWithText"
+import {socialLogin} from "@/actions/auth"
 
 function Register() {
     const searchParams = useSearchParams()
-    const {socialLogin} = useAuth()
     const router = useRouter()
 
     if (searchParams.size > 0) {

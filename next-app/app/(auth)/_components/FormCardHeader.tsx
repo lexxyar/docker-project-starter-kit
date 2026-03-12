@@ -12,7 +12,7 @@ const FormCardHeader = ({title, className, children}: Props) => {
     return (
         <CardHeader className={cn("", className)}>
             <div className="flex items-center gap-4">
-                <Image src="logoipsum.svg" alt="logo" width={32} height={32} className={"size-8"}/>
+                <Image src="/logoipsum.svg" alt="logo" width={32} height={32} className={"size-8"}/>
                 <h1>{title}</h1>
             </div>
             {children}

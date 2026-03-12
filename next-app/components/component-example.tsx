@@ -66,10 +66,16 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { PlusIcon, BluetoothIcon, MoreVerticalIcon, FileIcon, FolderIcon, FolderOpenIcon, FileCodeIcon, MoreHorizontalIcon, FolderSearchIcon, SaveIcon, DownloadIcon, EyeIcon, LayoutIcon, PaletteIcon, SunIcon, MoonIcon, MonitorIcon, UserIcon, CreditCardIcon, SettingsIcon, KeyboardIcon, LanguagesIcon, BellIcon, MailIcon, ShieldIcon, HelpCircleIcon, FileTextIcon, LogOutIcon } from "lucide-react"
+import Link from "next/link"
 
 export function ComponentExample() {
   return (
     <ExampleWrapper>
+      <div className={'flex items-center justify-start gap-4'}>
+        <Button asChild><Link href={'/login'}>Login</Link></Button>
+        <Button asChild><Link href={'/register'}>Register</Link></Button>
+      </div>
+      <div></div>
       <CardExample />
       <FormExample />
     </ExampleWrapper>

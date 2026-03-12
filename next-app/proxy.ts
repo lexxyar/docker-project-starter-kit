@@ -1,32 +1,31 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import type {NextRequest} from 'next/server'
+import {NextResponse} from 'next/server'
+import {cookies} from 'next/headers'
 
-// Define public paths that don't require authentication
-const publicPaths = ['/login', '/register', '/'];
+const publicPaths = ['/login', '/register', '/', '/forgot-password', '/reset-password']
 
-export function proxy(request: NextRequest) {
-    const authToken = request.cookies.get('authToken')?.value;
-    const { pathname } = request.nextUrl;
+export default async function proxy(request: NextRequest) {
+    // console.log('proxy') // Это должно появиться в терминале
 
-    // Check if the route is a public path
-    const isPublicPath = publicPaths.includes(pathname);
+    const authToken = (await cookies()).get('authToken')?.value
+    const {pathname} = request.nextUrl
 
-    // If the user is not authenticated and trying to access a protected route, redirect to login
+    const isPublicPath = publicPaths.includes(pathname)
+
     if (!authToken && !isPublicPath) {
-        const loginUrl = new URL('/login', request.url);
-        return NextResponse.redirect(loginUrl);
+        const loginUrl = new URL('/login', request.url)
+        return NextResponse.redirect(loginUrl)
     }
 
-    // If the user is authenticated and trying to access a public path, redirect to dashboard
     if (authToken && isPublicPath && pathname !== '/') {
-        return NextResponse.redirect(new URL('/workspaces', request.url));
+        return NextResponse.redirect(new URL('/workspaces', request.url))
     }
 
-    // Allow the request to proceed
-    return NextResponse.next();
+    return NextResponse.next()
 }
 
-// Указываем, для каких путей запускать proxy
 export const config = {
-    matcher: ['/workspaces/:path*', '/profile/:path*'],
-};
+    matcher: [
+        '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|ico)$).*)',
+    ],
+}

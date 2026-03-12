@@ -4,14 +4,14 @@ import React, {useEffect} from 'react'
 import z from 'zod'
 import {Controller, useForm} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
-import {useAuth} from "@/hooks/use-auth"
 import {useMutation, useQuery} from "@tanstack/react-query"
 import {Field, FieldError, FieldGroup, FieldLabel} from "@/components/ui/field"
 import {Input} from "@/components/ui/input"
 import {Button} from "@/components/ui/button"
 import ValidationError from "@/classes/ValidationError"
 import {toast} from "sonner"
-import {useProfile} from "@/hooks/use-profile"
+import {currentUser} from "@/actions/auth"
+import {updateProfile} from "@/actions/profile"
 
 const profileFormSchema = z.object({
     name: z.string(),
@@ -21,11 +21,9 @@ const profileFormSchema = z.object({
 })
 
 const ProfileInfo = () => {
-    const {fetchUser} = useAuth()
-    const {updateProfile} = useProfile()
     const {data: user, isLoading} = useQuery({
         queryKey: ['currentUser'],
-        queryFn: fetchUser,
+        queryFn: currentUser,
     })
     const form = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),

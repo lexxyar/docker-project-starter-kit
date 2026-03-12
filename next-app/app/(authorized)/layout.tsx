@@ -1,8 +1,8 @@
 import React from 'react'
 import {SidebarInset, SidebarProvider, SidebarTrigger,} from "@/components/ui/sidebar"
 import {Separator} from "@/components/ui/separator"
-import AppSidebar from "@/app/(authorized)/workspaces/_components/AppSidebar"
-import ProfileMenu from "@/app/(authorized)/workspaces/_components/ProfileMenu"
+import AppSidebar from "@/app/(authorized)/_components/AppSidebar"
+import ProfileMenu from "@/app/(authorized)/_components/ProfileMenu"
 
 const Layout = ({
                     children,
